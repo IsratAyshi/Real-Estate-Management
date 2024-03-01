@@ -16,7 +16,7 @@ class UserController extends Controller
     } //end method
 
     
-
+ //START method 
     public function UserProfile(){
 
         $id = Auth::user()->id;
@@ -29,7 +29,7 @@ class UserController extends Controller
 
 
 
-
+//START method 
     public function UserProfileStore( Request $request){
 
         $id = Auth::user()->id;
