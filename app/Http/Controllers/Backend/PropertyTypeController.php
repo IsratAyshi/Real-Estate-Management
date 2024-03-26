@@ -6,34 +6,28 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\PropertyType;
-use App\Models\Amenities;
+use App\Models\Facilities;
 
 class PropertyTypeController extends Controller
 {
-    //
     public function AllType(){
-
 
         $types = PropertyType::latest()->get();
         return view('backend.type.all_type',compact('types'));
 
-    } //end
-
-
+    } //End method
 
     public function AddType(){
-
 
         
         return view('backend.type.add_type');
 
-    } //end
+    } //End method
 
-            
     public function StoreType(Request $request){
 
         $request->validate([
-            'type_name' => 'required|unique:property_types|max:250',
+            'type_name' => 'required|unique:property_types|max:200',
             'type_icon' => 'required'
         ]);
 
@@ -46,7 +40,7 @@ class PropertyTypeController extends Controller
 
         $notification = array(
 
-            'message' => ' New Property - Type created ',
+            'message' => ' New Property Type Created Successfully',
             'alert-type' => 'success'
         );
 
@@ -63,14 +57,12 @@ class PropertyTypeController extends Controller
 
     } //End method
 
+
     public function UpdateType(Request $request){
 
-        $pid = $request->id;
+        $pid=$request->id;
 
-        PropertyType::findOrFail($pid)->update([    
-       
-
-       
+        PropertyType::findOrFail($pid)->update([
             'type_name' => $request->type_name,
             'type_icon' => $request->type_icon
 
@@ -79,7 +71,7 @@ class PropertyTypeController extends Controller
 
         $notification = array(
 
-            'message' => ' prop type updated successfully ',
+            'message' => ' Property Type Updated Successfully',
             'alert-type' => 'success'
         );
 
@@ -90,37 +82,56 @@ class PropertyTypeController extends Controller
 
     public function DeleteType($id){
 
+        
         PropertyType::findOrFail($id)->delete();
-
-
+    
         $notification = array(
 
-            'message' => ' selected type DELETED ',
+            'message' => ' Property Type Deleted Successfully',
             'alert-type' => 'success'
         );
 
         return redirect()->back()->with($notification);
         
-    }//End method
 
-    //amenities control
-
-    public function AllAmenitie(){
+    } //End method
 
 
-        $amenities = Amenities::latest()->get();
-        return view('backend.amenities.all_amenities',compact('amenities'));
-
-    } //end
 
 
-    public function AddAmenitie(){
+    /////////////////Facility Methods////////////
+
+    public function AllFacility(){
+
+        $facility = Facilities::latest()->get();
+        return view('backend.facilities.all_facility',compact('facility'));
+
+    } //End method
+
+    public function AddFacility(){
+
+        
+        return view('backend.facilities.add_facility');
+
+    } //End method
+
+    public function StoreFacility(Request $request){
 
 
-        return view ('backend.amenities.add_amenities');
-    }
+        Facilities::insert([
+            'facility_name' => $request->facility_name
 
-     
+        ]);
 
+        $notification = array(
+
+            'message' => 'Facility Added Successfully',
+            'alert-type' => 'success'
+        );
+
+        return redirect()->route('all.facility')->with($notification);
+        
+
+    } //End method
 
 }

@@ -15,6 +15,18 @@ class UserController extends Controller
 
     } //end method
 
+    public function Sign_in(){
+        return view('auth.login');
+    
+    
+        } //end method
+
+    public function home(){
+        return view('frontend.index');
+        
+        
+        } //end method
+
     
 
     public function UserProfile(){
@@ -38,7 +50,7 @@ class UserController extends Controller
         $data->email = $request->email;
         $data->phone = $request->phone;
         $data->address  = $request->address;
-        
+
         $data->save();
 
         $notification = array(
@@ -60,6 +72,7 @@ class UserController extends Controller
 
         return redirect('/login');
     }
+
 
 
 }

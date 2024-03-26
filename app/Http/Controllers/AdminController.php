@@ -28,6 +28,13 @@ class AdminController extends Controller
         return redirect('/admin/login');
     }//end method
 
+    public function AdminGoBack() {
+
+
+        return view('frontend.index');
+
+    } //end method
+
     public function AdminLogin() {
 
 
@@ -66,5 +73,34 @@ class AdminController extends Controller
         return redirect()->back()->with($notification);
 
     }//end method
+
+    public function AdminAllAgent() {
+
+        $allagent= User::where('role','agent')->get();
+        return view('admin.admin_all_agent',compact('allagent'));
+
+
+    } //end method
+
+    public function AdminAddAgent() {
+
+        return view('admin.admin_add_agent');
+
+
+    } //end method
+
+    public function addagent(Request $request)
+    {
+        $data= new user;
+        $data->name= $request->name;
+        $data->email= $request->email;
+        $data->password= bcrypt($request->password);
+        $data->role='agent';
+
+        $data->save();
+
+        return redirect()->back();
+    }
+
 
 }
