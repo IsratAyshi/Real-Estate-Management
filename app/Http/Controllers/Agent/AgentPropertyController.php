@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Backend;
+namespace App\Http\Controllers\Agent;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
@@ -13,36 +13,36 @@ use App\Models\User;
 use Intervention\Image\Facades\Image;
 use Haruncpi\LaravelIdGenerator\IdGenerator;
 use Carbon\Carbon;
-use App\Models\State;
+use Illuminate\Support\Facades\Auth;
+use App\Models\PropertyMessage;
 
-class PropertyController extends Controller
+
+class AgentPropertyController extends Controller
 {
-    public function AllProperty(){
+    public function AgentAllProperty(){
 
-        $property = Property::latest()->get();
-        return view('backend.property.all_property',compact('property'));
+        $id = Auth::user()->id;
+        $property = Property::where('agent_id',$id)->latest()->get();
+        return view('agent.property.all_property',compact('property'));
 
     } // End Method 
 
-    public function AddProperty(){
+    public function AgentAddProperty(){
 
         $propertytype = PropertyType::latest()->get();
-        $pstate = State::latest()->get();
         $facilities = Facilities::latest()->get();
-        $activeAgent = User::where('status','active')->where('role','agent')->latest()->get();
-        return view('backend.property.add_property',compact('propertytype','facilities','activeAgent','pstate'));
+
+        return view('agent.property.add_property',compact('propertytype','facilities'));
 
     }// End Method
 
-
-    public function StoreProperty(Request $request){
+    public function AgentStoreProperty(Request $request){
 
         $facil = $request->facility_id;
         $facility = implode(",", $facil);
-        // dd($amenites); 
+        // dd($amenites);
 
         $pcode = IdGenerator::generate(['table' => 'properties','field' => 'property_code','length' => 5, 'prefix' => 'PC' ]);
-
 
         $image = $request->file('property_thumbnail');
         $name_gen = hexdec(uniqid()).'.'.$image->getClientOriginalExtension();
@@ -79,7 +79,7 @@ class PropertyController extends Controller
             'longitude' => $request->longitude,
             'featured' => $request->featured,
             'hot_exclusive' => $request->hot,
-            'agent_id' => $request->agent_id,
+            'agent_id' => Auth::user()->id,
             'status' => 1,
             'property_thumbnail' => $save_url,
             'created_at' => Carbon::now(),
@@ -130,45 +130,43 @@ class PropertyController extends Controller
             'alert-type' => 'success'
         );
 
-        return redirect()->route('all.property')->with($notification);
-
-    }// End Method 
+        return redirect()->route('agent.all.property')->with($notification);
 
 
-    public function EditProperty($id){
+    }// End Method
 
+
+    public function AgentEditProperty($id){
+
+        $services = PropertyService::where('property_id',$id)->get();
         $property = Property::findOrFail($id);
 
-
         $type = $property->facility_id;
-        $property_facility = explode(',', $type);
+        $property_faci = explode(',', $type);
 
-
+        $multiImage = MultiImage::where('property_id',$id)->get();
 
         $propertytype = PropertyType::latest()->get();
-        $pstate = State::latest()->get();
         $facilities = Facilities::latest()->get();
-        $activeAgent = User::where('status','active')->where('role','agent')->latest()->get();
 
-        return view('backend.property.edit_property',compact('property','propertytype','facilities','activeAgent','property_facility','pstate'));
-
+        return view('agent.property.edit_property',compact('property','propertytype','facilities','property_faci','multiImage','services'));
 
     }// End Method 
 
 
-    public function UpdateProperty(Request $request){
-
+    public function AgentUpdateProperty(Request $request){
 
         $facil = $request->facility_id;
-        $facility = implode(",", $facil);   
+        $facilities = implode(",", $facil);
 
-        $property_id =$request->id;
+        $property_id = $request->id;
+
         Property::findOrFail($property_id)->update([
 
             'ptype_id' => $request->ptype_id,
-            'facility_id' => $facility,
+            'facility_id' => $facilities,
             'property_name' => $request->property_name,
-            'property_slug' => strtolower(str_replace(' ', '-', $request->property_name)),
+            'property_slug' => strtolower(str_replace(' ', '-', $request->property_name)), 
             'property_status' => $request->property_status,
 
             'lowest_price' => $request->lowest_price,
@@ -192,69 +190,36 @@ class PropertyController extends Controller
             'longitude' => $request->longitude,
             'featured' => $request->featured,
             'hot_exclusive' => $request->hot,
-            'agent_id' => $request->agent_id,
+            'agent_id' => Auth::user()->id, 
             'updated_at' => Carbon::now(), 
-
-
 
         ]);
 
-        $notification = array(
-            'message' => 'Property Update Successfully',
+         $notification = array(
+            'message' => 'Property Updated Successfully',
             'alert-type' => 'success'
         );
 
-        return redirect()->route('all.property')->with($notification);
-
+        return redirect()->route('agent.all.property')->with($notification); 
 
     }// End Method 
 
+    public function AgentPropertyMessage(){
 
+        $id = Auth::user()->id;
+        $usermsg = PropertyMessage::where('agent_id',$id)->get();
+        return view('agent.message.all_message',compact('usermsg'));
 
-    public function UpdatePropertyThumbnail(Request $request){
+    }// End Method
 
-        $pro_id = $request->id;
-        $oldImage = $request->old_img;
+    public function AgentMessageDetails($id){
 
-        $image = $request->file('property_thumbnail');
-        $name_gen = hexdec(uniqid()).'.'.$image->getClientOriginalExtension();
-        Image::make($image)->resize(370,250)->save('upload/property/thumbnail/'.$name_gen);
-        $save_url = 'upload/property/thumbnail/'.$name_gen;
+        $uid = Auth::user()->id;
+        $usermsg = PropertyMessage::where('agent_id',$uid)->get();
 
-        if (file_exists($oldImage)) {
-            
-            unlink($oldImage);
+        $msgdetails = PropertyMessage::findOrFail($id);
+        return view('agent.message.message_details',compact('usermsg','msgdetails'));
 
-
-        }
-
-        Property::findOrFail($pro_id)->update([
-            
-            'property_thumbnail' =>$save_url,
-            'updated_at' => Carbon::now(),
-
-
-        ]);
-
-        $notification = array(
-            'message' => 'Property image thumb Successfully updated',
-            'alert-type' => 'success'
-        );
-
-        return redirect()->back()->with($notification);
-
-
-
-
-
-    }   // End Method 
-
-
-
-
-
-
-
-
-
+    }// End Method  
+    
 }
